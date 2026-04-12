@@ -8,7 +8,7 @@ import (
 	"syscall"
 
 	corelogger "github.com/berezovskyivalerii/todo-app/internal/core/logger"
-	corepostgrespool "github.com/berezovskyivalerii/todo-app/internal/core/repository/postgres/pool"
+	corepgxpool "github.com/berezovskyivalerii/todo-app/internal/core/repository/postgres/pool/pgx"
 	coremiddleware "github.com/berezovskyivalerii/todo-app/internal/core/transport/http/middleware"
 	coreserver "github.com/berezovskyivalerii/todo-app/internal/core/transport/http/server"
 	usersrepository "github.com/berezovskyivalerii/todo-app/internal/features/users/repository/postgres"
@@ -30,7 +30,7 @@ func main() {
 
 	logger.Debug("initializing postgres connection pool")
 
-	pool, err := corepostgrespool.NewConnectionPool(ctx, corepostgrespool.NewConfigMust())
+	pool, err := corepgxpool.NewPool(ctx, corepgxpool.NewConfigMust())
 	if err != nil {
 		logger.Fatal("failed to init postgres connection pool: %w", zap.Error(err))
 	}
@@ -48,12 +48,21 @@ func main() {
 		logger,
 		coremiddleware.RequestID(),
 		coremiddleware.Logger(logger),
-		coremiddleware.Panic(),
 		coremiddleware.Trace(),
+		coremiddleware.Panic(),
 	)
-	apiVersionRouter := coreserver.NewAPIVersionRouter(coreserver.APIVersion1)
-	apiVersionRouter.RegisterRoutes(usersTransportHTTP.Routes()...)
-	httpServer.RegisterAPIRouters(apiVersionRouter)
+	apiVersionRouterV1 := coreserver.NewAPIVersionRouter(coreserver.APIVersion1)
+	apiVersionRouterV1.RegisterRoutes(usersTransportHTTP.Routes()...)
+
+	// apiVersionRouterV2 := coreserver.NewAPIVersionRouter(
+	// 	coreserver.APIVersion2,
+	// 	coremiddleware.Dummy("api v2 middleware"),
+	// )
+	// apiVersionRouterV2.RegisterRoutes(usersTransportHTTP.Routes()...)
+
+	httpServer.RegisterAPIRouters(
+		apiVersionRouterV1,
+	)
 
 	if err := httpServer.Run(ctx); err != nil {
 		logger.Error("HTTP server run error: %w", zap.Error(err))

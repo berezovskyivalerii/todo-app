@@ -1,4 +1,4 @@
-package coreutils
+package corerequest
 
 import (
 	"fmt"

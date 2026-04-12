@@ -1,17 +1,21 @@
 package coreserver
 
-import "net/http"
+import (
+	"net/http"
+
+	coremiddleware "github.com/berezovskyivalerii/todo-app/internal/core/transport/http/middleware"
+)
 
 type Route struct {
-	Method  string
-	Path    string
-	Handler http.HandlerFunc
+	Method     string
+	Path       string
+	Handler    http.HandlerFunc
+	Middleware []coremiddleware.Middleware
 }
 
-func NewRoute(method string, path string, handler http.HandlerFunc) Route {
-	return Route{
-		Method:  method,
-		Path:    path,
-		Handler: handler,
-	}
+func (r *Route) WithMiddleware() http.Handler {
+	return coremiddleware.ChainMiddleware(
+		r.Handler,
+		r.Middleware...,
+	)
 }

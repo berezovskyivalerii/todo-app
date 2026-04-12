@@ -38,6 +38,9 @@ func (h *UsersHTTPHandler) Routes() []coreserver.Route {
 			Method:  http.MethodGet,
 			Path:    "/users",
 			Handler: h.GetUsers,
+			// Middleware: []coremiddleware.Middleware{
+			// 	coremiddleware.Dummy("get users middleware"),
+			// },
 		},
 		{
 			Method:  http.MethodGet,

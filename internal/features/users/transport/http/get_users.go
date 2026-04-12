@@ -5,8 +5,8 @@ import (
 	"net/http"
 
 	corelogger "github.com/berezovskyivalerii/todo-app/internal/core/logger"
+	corerequest "github.com/berezovskyivalerii/todo-app/internal/core/transport/http/request"
 	coreresponse "github.com/berezovskyivalerii/todo-app/internal/core/transport/http/response"
-	coreutils "github.com/berezovskyivalerii/todo-app/internal/core/transport/http/utils"
 )
 
 type GetUsersResponse []UserDTOResponse
@@ -41,12 +41,17 @@ func (h *UsersHTTPHandler) GetUsers(rw http.ResponseWriter, r *http.Request) {
 }
 
 func getLimitOffsetQueryParams(r *http.Request) (*int, *int, error) {
-	limit, err := coreutils.GetIntQueryParam(r, "limit")
+	const (
+		limitQueryParamKey  = "limit"
+		offsetQueryParamKey = "offset"
+	)
+
+	limit, err := corerequest.GetIntQueryParam(r, limitQueryParamKey)
 	if err != nil {
 		return nil, nil, fmt.Errorf("get 'limit' query param: %w", err)
 	}
 
-	offset, err := coreutils.GetIntQueryParam(r, "offset")
+	offset, err := corerequest.GetIntQueryParam(r, offsetQueryParamKey)
 	if err != nil {
 		return nil, nil, fmt.Errorf("get 'offset' query param: %w", err)
 	}

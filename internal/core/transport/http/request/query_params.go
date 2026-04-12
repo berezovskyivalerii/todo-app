@@ -1,5 +1,4 @@
-// Package coreutils provides utils for HTTP layer
-package coreutils
+package corerequest
 
 import (
 	"fmt"

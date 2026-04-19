@@ -12,6 +12,9 @@ import (
 	corepgxpool "github.com/berezovskyivalerii/todo-app/internal/core/repository/postgres/pool/pgx"
 	coremiddleware "github.com/berezovskyivalerii/todo-app/internal/core/transport/http/middleware"
 	coreserver "github.com/berezovskyivalerii/todo-app/internal/core/transport/http/server"
+	statisticsrepository "github.com/berezovskyivalerii/todo-app/internal/features/statistics/repository/postgres"
+	statisticsservice "github.com/berezovskyivalerii/todo-app/internal/features/statistics/service"
+	statisticshttp "github.com/berezovskyivalerii/todo-app/internal/features/statistics/transport/http"
 	tasksrepository "github.com/berezovskyivalerii/todo-app/internal/features/tasks/repository/postgres"
 	tasksservice "github.com/berezovskyivalerii/todo-app/internal/features/tasks/service"
 	taskshttp "github.com/berezovskyivalerii/todo-app/internal/features/tasks/transport/http"
@@ -56,6 +59,11 @@ func main() {
 	tasksService := tasksservice.NewTasksService(tasksRepository)
 	tasksTransportHTTP := taskshttp.NewTasksHTTPHandler(tasksService)
 
+	logger.Debug("initializing feature", zap.String("feature", "statistics"))
+	statisticsRepository := statisticsrepository.NewStatiscticsRepository(pool)
+	statisticsService := statisticsservice.NewStatisticsService(statisticsRepository)
+	statisticsTransportHTTP := statisticshttp.NewStatisticsHTTPHandler(statisticsService)
+
 	logger.Debug("initializing HTTP server")
 
 	httpServer := coreserver.NewHTTPServer(
@@ -69,6 +77,7 @@ func main() {
 	apiVersionRouterV1 := coreserver.NewAPIVersionRouter(coreserver.APIVersion1)
 	apiVersionRouterV1.RegisterRoutes(usersTransportHTTP.Routes()...)
 	apiVersionRouterV1.RegisterRoutes(tasksTransportHTTP.Routes()...)
+	apiVersionRouterV1.RegisterRoutes(statisticsTransportHTTP.Routes()...)
 
 	// apiVersionRouterV2 := coreserver.NewAPIVersionRouter(
 	// 	coreserver.APIVersion2,
